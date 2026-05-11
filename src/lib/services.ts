@@ -68,7 +68,7 @@ export const jobService = {
   listApplications: (id: number, params?: object) =>
     api.get(`/jobs/${id}/applications/`, { params }).then(r => r.data),
   approveApplications: (id: number, approved_ids: number[], supervisor_id: number) =>
-    api.post(`/jobs/${id}/approve-applications/`, { approved_ids, supervisor_id }).then(r => r.data),
+    api.post(`/jobs/${id}/approve-applications/`, { approved_staff_ids: approved_ids, supervisor_id }).then(r => r.data),
 }
 
 // ─── ATTENDANCE SERVICE ──────────────────────────────────────────────
@@ -117,6 +117,20 @@ export const notificationService = {
   unreadCount: () => api.get('/notifications/unread-count/').then(r => r.data),
   markAllRead: () => api.post('/notifications/mark-all-read/').then(r => r.data),
   markRead: (id: number) => api.patch(`/notifications/${id}/read/`).then(r => r.data),
+}
+
+// ─── PUBLIC JOB SERVICE (no auth required) ───────────────────────
+import axios from 'axios'
+
+const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const publicApi = axios.create({ baseURL: PUBLIC_BASE, headers: { 'Content-Type': 'application/json' } })
+
+export const publicJobService = {
+  listJobs: () => publicApi.get('/jobs/public/').then(r => r.data),
+  apply: (jobId: number, email: string) =>
+    publicApi.post(`/jobs/${jobId}/public-apply/`, { email }).then(r => r.data),
+  withdraw: (jobId: number, email: string) =>
+    publicApi.delete(`/jobs/${jobId}/public-apply/`, { data: { email } }).then(r => r.data),
 }
 
 // ─── REPORT SERVICE ──────────────────────────────────────────────────

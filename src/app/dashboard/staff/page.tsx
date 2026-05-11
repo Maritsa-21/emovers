@@ -43,7 +43,7 @@ function AttendanceModal({ jobId, open, onClose, onSuccess }: { jobId: number; o
           <i className="fa-solid fa-circle-check" />
         </div>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-          Enter the 6-digit PIN shared by your supervisor to confirm your attendance.
+          Enter the 6-digit PIN shared by your Team Lead to confirm your attendance.
         </p>
         <input
           className="form-input"

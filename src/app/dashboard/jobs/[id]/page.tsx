@@ -55,8 +55,8 @@ function ApproveModal({ open, onClose, applications, onApprove }: {
   })
 
   const handleConfirm = async () => {
-    if (!supervisor) { setError('Please select a supervisor.'); return }
-    if (!approved.has(supervisor)) { setError('Supervisor must be in the approved set.'); return }
+    if (!supervisor) { setError('Please select a Team Lead.'); return }
+    if (!approved.has(supervisor)) { setError('Team Lead must be in the approved set.'); return }
     if (approved.size === 0) { setError('Select at least one staff member.'); return }
     setLoading(true); setError('')
     try { await onApprove(Array.from(approved), supervisor) }
@@ -75,7 +75,7 @@ function ApproveModal({ open, onClose, applications, onApprove }: {
     >
       {error && <div style={{ marginBottom: '1rem', color: 'var(--color-danger)', fontSize: '0.875rem', background: 'rgba(239,68,68,0.08)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>{error}</div>}
       <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-        Select staff to approve and designate one as supervisor.
+        Select staff to approve and designate one as Team Lead.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
         {applications.map(app => (
@@ -101,7 +101,7 @@ function ApproveModal({ open, onClose, applications, onApprove }: {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={e => e.stopPropagation()}>
                 <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.375rem', cursor: 'pointer' }}>
                   <input type="radio" name="supervisor" checked={supervisor === app.staff} onChange={() => setSupervisor(app.staff)} style={{ accentColor: 'var(--color-orange)' }} />
-                  <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)' }} /> Supervisor
+                  <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)' }} /> Team Lead
                 </label>
               </div>
             )}
@@ -575,7 +575,7 @@ export default function JobDetailPage() {
                   <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-navy)', marginBottom: '0.25rem' }}>{a.staff_name}</div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem' }}>
                     {a.role === 'supervisor' && <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)', fontSize: '0.75rem' }} />}
-                    <Badge status={a.role} label={a.role_display} />
+                    <Badge status={a.role} label={a.role === 'supervisor' ? 'Team Lead' : (a.role_display || a.role)} />
                   </div>
                   {(() => {
                     const att = attendance.find(x => x.staff === a.staff.id)

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const NAV_LINKS = [
   { label: 'Home', href: '#hero' },
@@ -15,12 +16,19 @@ const NAV_LINKS = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
+
+  // Prefetch both destination pages as soon as the navbar mounts
+  useEffect(() => {
+    router.prefetch('/auth/login')
+    router.prefetch('/available-jobs')
+  }, [router])
 
   return (
     <nav className={`landing-nav${scrolled ? ' scrolled' : ''}`}>
@@ -72,6 +80,27 @@ export function Navbar() {
             <i className="fa-solid fa-phone" />
             +254 700 000 000
           </a>
+          <Link
+            href="/available-jobs"
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              color: scrolled ? 'var(--color-orange)' : 'var(--color-yellow)',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              border: `1.5px solid ${scrolled ? 'var(--color-orange)' : 'rgba(255,215,0,0.6)'}`,
+              borderRadius: '0.375rem',
+              padding: '0.375rem 0.75rem',
+              transition: 'all 0.15s ease',
+            }}
+            className="nav-phone"
+          >
+            <i className="fa-solid fa-calendar-check" />
+            Check Availability
+          </Link>
           <Link href="/auth/login" className="btn btn-primary btn-sm">
             <i className="fa-solid fa-right-to-bracket" />
             Login
@@ -112,7 +141,15 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
-          <div style={{ marginTop: '1rem' }}>
+          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <Link
+              href="/available-jobs"
+              onClick={() => setMobileOpen(false)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: '0.375rem', fontWeight: 700, color: 'var(--color-orange)', border: '1.5px solid var(--color-orange)', textDecoration: 'none', background: 'rgba(232,69,10,0.04)' }}
+            >
+              <i className="fa-solid fa-calendar-check" />
+              Check Availability
+            </Link>
             <Link href="/auth/login" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
               Login to Dashboard
             </Link>

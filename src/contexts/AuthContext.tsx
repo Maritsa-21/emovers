@@ -42,9 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = await authService.login(email, password)
     localStorage.setItem('access_token', data.tokens.access)
     localStorage.setItem('refresh_token', data.tokens.refresh)
-    const me = await authService.me()
-    setUser(me)
-    return me
+    // Use the user object from the login response — avoids a second round-trip
+    setUser(data.user)
+    return data.user
   }
 
   const logout = async () => {

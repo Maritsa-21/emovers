@@ -1,14 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
 import { ToastProvider, useToast } from '@/contexts/ToastContext'
-import { AuthProvider } from '@/contexts/AuthContext'
+import { authService } from '@/lib/services'
+import type { User } from '@/types'
 
 function LoginForm() {
-  const { login } = useAuth()
   const toast = useToast()
   const router = useRouter()
 
@@ -18,18 +17,23 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // If a token already exists, redirect without mounting AuthProvider or making API calls
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (token) router.replace('/dashboard')
+  }, [router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const user = await login(email, password)
+      const data = await authService.login(email, password)
+      localStorage.setItem('access_token', data.tokens.access)
+      localStorage.setItem('refresh_token', data.tokens.refresh)
+      const user: User = data.user
       toast.success(`Welcome back, ${user.first_name || user.email}!`)
-      if (user.role === 'mover-admin') {
-        router.push('/dashboard/admin')
-      } else {
-        router.push('/dashboard/staff')
-      }
+      router.push(user.role === 'mover-admin' ? '/dashboard/admin' : '/dashboard/staff')
     } catch (err: any) {
       const msg =
         err.response?.data?.detail ||
@@ -227,7 +231,7 @@ function LoginForm() {
         </div>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         @media (max-width: 768px) {
           div[style*="width: 45%"] { display: none !important; }
         }
@@ -238,10 +242,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <LoginForm />
-      </ToastProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <LoginForm />
+    </ToastProvider>
   )
 }

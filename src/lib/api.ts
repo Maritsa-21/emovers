@@ -18,11 +18,19 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config
 })
 
-// Response interceptor — auto-refresh on 401
+// Response interceptor — auto-refresh on 401 + console error logging
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+
+    // Log every API error to the console for easy debugging
+    const method = original?.method?.toUpperCase() ?? '?'
+    const url = original?.url ?? '?'
+    const status = error.response?.status ?? 'network error'
+    const body = error.response?.data
+    console.error(`[API] ${method} ${url} → ${status}`, body ?? error.message)
+
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
       try {
