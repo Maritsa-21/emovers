@@ -69,14 +69,12 @@ export const jobService = {
     api.get(`/jobs/${id}/applications/`, { params }).then(r => r.data),
   approveApplications: (id: number, approved_ids: number[], supervisor_id: number) =>
     api.post(`/jobs/${id}/approve-applications/`, { approved_staff_ids: approved_ids, supervisor_id }).then(r => r.data),
+  teamPdf: (id: number) =>
+    api.get(`/jobs/${id}/team-pdf/`, { responseType: 'blob' }).then(r => r.data),
 }
 
 // ─── ATTENDANCE SERVICE ──────────────────────────────────────────────
 export const attendanceService = {
-  generatePin: (jobId: number) =>
-    api.post(`/attendance/generate-pin/${jobId}/`).then(r => r.data),
-  confirm: (job_id: number, pin: string) =>
-    api.post('/attendance/confirm/', { job_id, pin }).then(r => r.data),
   list: (jobId: number) => api.get(`/attendance/${jobId}/`).then(r => r.data),
   markAbsent: (jobId: number, staff_id: number, notes: string) =>
     api.post(`/attendance/${jobId}/mark-absent/`, { staff_id, notes }).then(r => r.data),
@@ -122,7 +120,7 @@ export const notificationService = {
 // ─── PUBLIC JOB SERVICE (no auth required) ───────────────────────
 import axios from 'axios'
 
-const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
 const publicApi = axios.create({ baseURL: PUBLIC_BASE, headers: { 'Content-Type': 'application/json' } })
 
 export const publicJobService = {

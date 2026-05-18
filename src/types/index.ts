@@ -253,8 +253,7 @@ export interface AttendanceRecord {
   job_title: string
   staff: number
   staff_name: string
-  status: 'confirmed' | 'absent'
-  confirmed_at: string | null
+  status: 'absent'
   notes: string
 }
 

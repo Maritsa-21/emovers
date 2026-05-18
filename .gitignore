@@ -44,3 +44,5 @@ Thumbs.db
 # Cache
 .eslintcache
 .cache/
+.claude/
+claude/

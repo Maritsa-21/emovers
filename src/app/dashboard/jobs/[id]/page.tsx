@@ -151,7 +151,7 @@ function ReviewFormModal({ open, onClose, job, onSuccess }: { open: boolean; onC
     const payload: object[] = []
     Object.entries(reviews).forEach(([staffId, cats]) => {
       Object.entries(cats).forEach(([cat, data]) => {
-        if (data.rating > 0) payload.push({ reviewee: parseInt(staffId), category: cat, rating: data.rating, comment: data.comment })
+        if (data.rating > 0) payload.push({ reviewee_id: parseInt(staffId), category: cat, rating: data.rating, comment: data.comment })
       })
     })
     if (payload.length === 0) { toast.warning('No Ratings', 'Please rate at least one category.'); return }
@@ -272,7 +272,6 @@ export default function JobDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [invoiceError, setInvoiceError] = useState(false)
   const [reviews, setReviews] = useState<StaffReview[]>([])
-  const [generatedPin, setGeneratedPin] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('overview')
   const [actionLoading, setActionLoading] = useState(false)
@@ -329,17 +328,19 @@ export default function JobDetailPage() {
     } finally { setActionLoading(false) }
   }
 
-  const handleGeneratePin = async () => {
+  const handleDownloadPdf = async () => {
     if (!job) return
-    setActionLoading(true)
     try {
-      const data = await attendanceService.generatePin(job.id)
-      setGeneratedPin(data.pin)
-      toast.info('PIN Generated', 'Share this PIN with your team.')
-      setRefresh(r => r + 1)
+      const blob = await jobService.teamPdf(job.id)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `team_${job.id}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
     } catch (err: any) {
-      toast.error('Failed', err.response?.data?.error || 'Could not generate PIN.')
-    } finally { setActionLoading(false) }
+      toast.error('Download Failed', err.response?.data?.error || 'Could not download team PDF.')
+    }
   }
 
   const handleMarkAbsent = async (staffId: number) => {
@@ -388,10 +389,6 @@ export default function JobDetailPage() {
   }
 
   const fmt = (v: string | number) => `KES ${parseFloat(String(v)).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`
-
-  const confirmRate = attendance.length > 0
-    ? Math.round((attendance.filter(a => a.status === 'confirmed').length / attendance.length) * 100)
-    : 0
 
   const isSupervisor = job?.assignments.some(a => a.staff.id === user?.id && a.role === 'supervisor')
 
@@ -526,43 +523,58 @@ export default function JobDetailPage() {
       {/* ── APPLICATIONS TAB ── */}
       {tab === 'applications' && isAdmin && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{applications.length} applicants sorted by recommendation score</div>
-            {applications.length > 0 && (
-              <button className="btn btn-primary" onClick={() => setShowApprove(true)}>
-                <i className="fa-solid fa-check" />Approve Applications
-              </button>
-            )}
-          </div>
-          {applications.length === 0 ? (
-            <EmptyState icon="fa-paper-plane" title="No Applications" description="No staff have applied for this job yet." />
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {applications.sort((a, b) => b.recommendation_score - a.recommendation_score).map(app => (
-                <div key={app.id} className="card" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
-                    {app.staff_name?.[0]}
+          {(() => {
+            const appliedOnly = applications.filter(a => a.status === 'applied')
+              .sort((a, b) => b.recommendation_score - a.recommendation_score)
+            return (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                    {appliedOnly.length} pending applicant{appliedOnly.length !== 1 ? 's' : ''} · {applications.length} total
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: 'var(--color-navy)' }}>{app.staff_name}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: '1rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                      <span><StarDisplay rating={Math.round(app.average_rating)} /></span>
-                      <ScoreBar score={app.recommendation_score} />
-                      <span>Applied {new Date(app.applied_at).toLocaleDateString('en-KE')}</span>
-                    </div>
-                  </div>
-                  <Badge status={app.status} label={app.status} />
+                  {appliedOnly.length > 0 && (
+                    <button className="btn btn-primary" onClick={() => setShowApprove(true)}>
+                      <i className="fa-solid fa-check" />Approve Applications
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-          <ApproveModal open={showApprove} onClose={() => setShowApprove(false)} applications={applications} onApprove={handleApprove} />
+                {applications.length === 0 ? (
+                  <EmptyState icon="fa-paper-plane" title="No Applications" description="No staff have applied for this job yet." />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {applications.sort((a, b) => b.recommendation_score - a.recommendation_score).map(app => (
+                      <div key={app.id} className="card" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--color-navy)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
+                          {app.staff_name?.[0]}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, color: 'var(--color-navy)' }}>{app.staff_name}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: '1rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                            <span><StarDisplay rating={Math.round(app.average_rating)} /></span>
+                            <ScoreBar score={app.recommendation_score} />
+                            <span>Applied {new Date(app.applied_at).toLocaleDateString('en-KE')}</span>
+                          </div>
+                        </div>
+                        <Badge status={app.status} label={app.status} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <ApproveModal open={showApprove} onClose={() => setShowApprove(false)} applications={appliedOnly} onApprove={handleApprove} />
+              </>
+            )
+          })()}
         </div>
       )}
 
       {/* ── TEAM TAB ── */}
       {tab === 'team' && (
         <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+            <button className="btn btn-outline btn-sm" onClick={handleDownloadPdf}>
+              <i className="fa-solid fa-file-pdf" />Download Team PDF
+            </button>
+          </div>
           {job.assignments.length === 0 ? (
             <EmptyState icon="fa-users" title="No Team Assigned" />
           ) : (
@@ -577,11 +589,9 @@ export default function JobDetailPage() {
                     {a.role === 'supervisor' && <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)', fontSize: '0.75rem' }} />}
                     <Badge status={a.role} label={a.role === 'supervisor' ? 'Team Lead' : (a.role_display || a.role)} />
                   </div>
-                  {(() => {
-                    const att = attendance.find(x => x.staff === a.staff.id)
-                    if (!att) return <div style={{ marginTop: '0.5rem' }}><Badge status="pending" label="Pending" /></div>
-                    return <div style={{ marginTop: '0.5rem' }}><Badge status={att.status} label={att.status === 'confirmed' ? 'Present' : 'Absent'} /></div>
-                  })()}
+                  {attendance.find(x => x.staff === a.staff.id) && (
+                    <div style={{ marginTop: '0.5rem' }}><Badge status="absent" label="Absent" /></div>
+                  )}
                 </div>
               ))}
             </div>
@@ -592,70 +602,47 @@ export default function JobDetailPage() {
       {/* ── ATTENDANCE TAB ── */}
       {tab === 'attendance' && isAdmin && (
         <div>
-          {!generatedPin ? (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div className="alert-banner alert-blue">
-                <i className="fa-solid fa-key" style={{ fontSize: '1.25rem' }} />
-                <div style={{ flex: 1 }}>
-                  <strong>Generate Attendance PIN</strong>
-                  <div style={{ fontSize: '0.875rem', marginTop: '0.125rem' }}>Generate a 6-digit PIN and share it with your team for attendance confirmation.</div>
-                </div>
-                <button className="btn btn-primary btn-sm" onClick={handleGeneratePin} disabled={actionLoading}>
-                  {actionLoading ? <span className="spinner spinner-sm" /> : <i className="fa-solid fa-key" />}
-                  Generate PIN
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="card card-body" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-              <div style={{ marginBottom: '0.75rem', fontWeight: 700, color: 'var(--color-navy)' }}>Attendance PIN</div>
-              <div className="pin-display" style={{ justifyContent: 'center', marginBottom: '1rem' }}>
-                {generatedPin.split('').map((d, i) => <div key={i} className="pin-digit">{d}</div>)}
-              </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: '0.375rem', color: 'var(--color-warning)' }} />
-                Share this PIN with your team. Regenerating will invalidate the old PIN.
-              </div>
-            </div>
-          )}
-
-          {/* Confirmation rate */}
-          <div className="card card-body" style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <span style={{ fontWeight: 700, color: 'var(--color-navy)' }}>Confirmation Rate</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem', color: confirmRate >= 80 ? 'var(--color-success)' : 'var(--color-warning)' }}>{confirmRate}%</span>
-            </div>
-            <div className="score-bar-track" style={{ height: '0.75rem' }}>
-              <div className={`score-bar-fill ${confirmRate >= 80 ? 'high' : confirmRate >= 50 ? 'mid' : 'low'}`} style={{ width: `${confirmRate}%` }} />
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.375rem' }}>
-              {attendance.filter(a => a.status === 'confirmed').length} / {attendance.length} confirmed
-            </div>
+          <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            {attendance.length} no-show{attendance.length !== 1 ? 's' : ''} recorded out of {job.assignments.length} assigned staff
           </div>
-
-          {/* Attendance table */}
           <div className="card">
             <table className="data-table">
               <thead>
-                <tr><th>Staff</th><th>Status</th><th>Confirmed At</th><th>Actions</th></tr>
+                <tr><th>Staff</th><th>Role</th><th>No-show</th><th>Notes</th><th>Actions</th></tr>
               </thead>
               <tbody>
-                {attendance.map(rec => (
-                  <tr key={rec.id}>
-                    <td style={{ fontWeight: 600 }}>{rec.staff_name}</td>
-                    <td><Badge status={rec.status} label={rec.status === 'confirmed' ? 'Present' : 'Absent'} /></td>
-                    <td>{rec.confirmed_at ? new Date(rec.confirmed_at).toLocaleString('en-KE') : '—'}</td>
-                    <td>
-                      {rec.status !== 'absent' && (
-                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => handleMarkAbsent(rec.staff)}>
-                          <i className="fa-solid fa-user-xmark" />Mark Absent
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {attendance.length === 0 && (
-                  <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>No attendance records yet</td></tr>
+                {job.assignments.map(a => {
+                  const absentRecord = attendance.find(x => x.staff === a.staff.id)
+                  return (
+                    <tr key={a.id}>
+                      <td style={{ fontWeight: 600 }}>{a.staff_name}</td>
+                      <td>
+                        {a.role === 'supervisor'
+                          ? <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-navy)' }}>
+                              <i className="fa-solid fa-crown" style={{ color: 'var(--color-yellow)' }} />Team Lead
+                            </span>
+                          : <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Mover</span>
+                        }
+                      </td>
+                      <td>
+                        {absentRecord
+                          ? <Badge status="absent" label="Absent" />
+                          : <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>—</span>
+                        }
+                      </td>
+                      <td style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{absentRecord?.notes || '—'}</td>
+                      <td>
+                        {!absentRecord && (
+                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => handleMarkAbsent(a.staff.id)}>
+                            <i className="fa-solid fa-user-xmark" />Mark Absent
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+                {job.assignments.length === 0 && (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>No team assigned to this job</td></tr>
                 )}
               </tbody>
             </table>
@@ -763,16 +750,30 @@ export default function JobDetailPage() {
       {/* ── REVIEWS TAB ── */}
       {tab === 'reviews' && (
         <div>
+          {isSupervisor && reviews.length === 0 && (
+            <div className="alert-banner alert-blue" style={{ marginBottom: '1.25rem' }}>
+              <i className="fa-solid fa-star" style={{ fontSize: '1.25rem', color: 'var(--color-yellow)' }} />
+              <div style={{ flex: 1 }}>
+                <strong>Review Your Team</strong>
+                <div style={{ fontSize: '0.875rem', marginTop: '0.125rem' }}>
+                  The job is complete. Rate each team member across punctuality, teamwork, care of goods, and more.
+                </div>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={() => setShowReviews(true)}>
+                <i className="fa-solid fa-star" />Start Reviews
+              </button>
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{reviews.length} reviews submitted</div>
-            {isSupervisor && reviews.length === 0 && (
-              <button className="btn btn-primary" onClick={() => setShowReviews(true)}>
-                <i className="fa-solid fa-star" />Submit Reviews
+            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{reviews.length} review{reviews.length !== 1 ? 's' : ''} submitted</div>
+            {isSupervisor && reviews.length > 0 && (
+              <button className="btn btn-outline btn-sm" onClick={() => setShowReviews(true)}>
+                <i className="fa-solid fa-pen" />Add More Reviews
               </button>
             )}
           </div>
           {reviews.length === 0 ? (
-            <EmptyState icon="fa-star" title="No Reviews" description="No reviews submitted for this job yet." />
+            <EmptyState icon="fa-star" title="No Reviews Yet" description={isSupervisor ? 'Use the button above to rate your team.' : 'No reviews submitted for this job yet.'} />
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
               {reviews.map(r => (
