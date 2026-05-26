@@ -69,7 +69,7 @@ const STEPS = [
 
 const TESTIMONIALS = [
   {
-    quote: 'E-Movers handled my office relocation seamlessly. Professional team, zero damage, on-time delivery. Highly recommended!',
+    quote: 'Smart-Movers handled my office relocation seamlessly. Professional team, zero damage, on-time delivery. Highly recommended!',
     name: 'James Mwangi',
     role: 'Operations Director',
     rating: 5,
@@ -91,7 +91,7 @@ const TESTIMONIALS = [
 const BLOG_POSTS = [
   { cat: 'Tips', title: '10 Packing Tips for a Stress-Free Move', img: 'fa-box-open' },
   { cat: 'Guide', title: 'How to Choose the Right Moving Company', img: 'fa-truck-moving' },
-  { cat: 'News', title: 'E-Movers Expands to 5 New Cities in 2025', img: 'fa-city' },
+  { cat: 'News', title: 'Smart-Movers Expands to 5 New Cities in 2025', img: 'fa-city' },
 ]
 
 const PARTNERS = ['Proline', 'Penta', 'Waveless', 'Automation', 'Vision']
@@ -272,7 +272,7 @@ export default function LandingPage() {
           {/* Right text */}
           <div className="section-pad" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ color: 'var(--color-orange)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontFamily: 'var(--font-body)' }}>
-              Why E-Movers
+              Why Smart-Mover
             </div>
             <h2 className="display-lg" style={{ marginBottom: '1rem' }}>
               Explore Our Services &amp; Moving Solutions
@@ -506,7 +506,7 @@ export default function LandingPage() {
             {/* Brand */}
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.75rem', color: 'white', textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: '0.75rem' }}>
-                <span style={{ color: 'var(--color-orange)' }}>E-</span>Movers
+                <span style={{ color: 'var(--color-orange)' }}>SMART-</span>Movers
               </div>
               <p style={{ fontSize: '0.875rem', lineHeight: 1.7, marginBottom: '1.25rem', fontFamily: 'var(--font-body)' }}>
                 Professional moving and storage services across Kenya. Available 24/7 for all your relocation needs.
@@ -584,7 +584,7 @@ export default function LandingPage() {
           {/* Bottom bar */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-body)' }}>
-              &copy; {new Date().getFullYear()} E-Movers. All rights reserved.
+              &copy; {new Date().getFullYear()} Smart- Movers. All rights reserved.
             </div>
             <Link href="/auth/login" className="btn btn-primary btn-sm">
               <i className="fa-solid fa-right-to-bracket" />

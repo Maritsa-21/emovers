@@ -72,7 +72,7 @@ function LoginForm() {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <Link href="/" style={{ textDecoration: 'none' }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
-              <span style={{ color: 'var(--color-orange)' }}>E-</span>
+              <span style={{ color: 'var(--color-orange)' }}>Smart-</span>
               <span style={{ color: 'white' }}>Movers</span>
             </div>
           </Link>

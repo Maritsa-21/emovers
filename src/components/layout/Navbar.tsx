@@ -35,7 +35,7 @@ export function Navbar() {
       <div className="container-wide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem' }}>
         {/* Logo */}
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.75rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
-          <span style={{ color: scrolled ? 'var(--color-orange)' : 'var(--color-yellow)' }}>E-</span>
+          <span style={{ color: scrolled ? 'var(--color-orange)' : 'var(--color-yellow)' }}>Smart-</span>
           <span style={{ color: scrolled ? 'var(--color-navy)' : 'var(--color-white)' }}>Movers</span>
         </div>
 
