@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'E-Movers — Moving Company Management',
+  title: 'Smart-Movers — Moving Company Management',
   description: 'Professional moving company management system',
 }
 

@@ -135,7 +135,7 @@ function ApplyModal({
               required
             />
             <div style={{ fontSize: '0.775rem', color: 'var(--color-text-muted)', marginTop: '0.375rem' }}>
-              Use the email address registered with E-Movers.
+              Use the email address registered with Smart-Movers.
             </div>
           </div>
 
@@ -209,7 +209,7 @@ export default function AvailableJobsPage() {
       {/* Top bar */}
       <header style={{ background: 'var(--color-navy)', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase', letterSpacing: '-0.02em', textDecoration: 'none' }}>
-          <span style={{ color: 'var(--color-yellow)' }}>E-</span>
+          <span style={{ color: 'var(--color-yellow)' }}>Smart-</span>
           <span style={{ color: 'white' }}>Movers</span>
         </Link>
         <Link href="/auth/login" style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>

@@ -53,7 +53,7 @@ export default function LoginPage() {
             <Zap size={22} className="text-brand-900" />
           </div>
           <div>
-            <h1 className="text-white font-black text-xl font-display leading-none">E-Movers</h1>
+            <h1 className="text-white font-black text-xl font-display leading-none">Smart-Movers</h1>
             <p className="text-brand-400 text-xs">Management System</p>
           </div>
         </div>
