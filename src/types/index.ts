@@ -52,13 +52,7 @@ export interface Truck {
 
 export interface JobAssignment {
   id: number
-  staff: {
-    id: number
-    first_name: string
-    last_name: string
-    email: string
-    phone?: string
-  }
+  staff: number
   staff_name?: string
   staff_email?: string
   staff_phone?: string
@@ -148,6 +142,8 @@ export interface Invoice {
   // Flat fields used by legacy dashboard pages
   job_title?: string
   customer_name?: string
+  move_size?: string
+  move_size_display?: string
   base_charge: string
   distance_charge: string
   staff_charge: string
